@@ -6,11 +6,16 @@
 int f(int n)
 {
     static int init = 0;
-    static int hashes_table[M] = {-1};
+    static int hashes_table[(1 << M)] = {0};
 
-    // Initialize the RNG seed only once
+    // Initialize only once
     if (!init) {
-        srand(time(NULL));
+        // Empty entries are represented with -1
+        for (int i = 0; i < (1 << M); i++) {
+            hashes_table[i] = -1;
+        }
+
+        srand(time(NULL)); // Set the RNG seed
         init = 1;
     }
 
@@ -19,9 +24,9 @@ int f(int n)
         int collision = 0;
 
         do {
-            hashes_table[n] = rand() % M;
+            hashes_table[n] = rand() % (1 << M);
 
-            for (int i = 0; i < M; i++) {
+            for (int i = 0; i < (1 << M); i++) {
                 if (i != n && hashes_table[i] == hashes_table[n]) {
                     collision = 1;
                 }
