@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <mpi.h>
+
 #include "utils.h"
 
 int f(int n)
@@ -35,4 +37,32 @@ int f(int n)
     }
 
     return hashes_table[n];
+}
+
+int cmpfunc(const void *a, const void *b)
+{
+    return (*(int *)a - *(int *)b);
+}
+
+// Helper function for computing the Chord IDs of the peers
+void init_chord_ids(int ids[NB_PEERS])
+{
+    for (int i = 0; i < NB_PEERS; i++) {
+        ids[i] = f(i);
+    }
+
+    qsort(ids, NB_PEERS, sizeof(int), cmpfunc);
+}
+
+void simulator(void)
+{
+    int chord_ids[NB_PEERS];
+    init_chord_ids(chord_ids);
+
+    for (int i = 1; i <= NB_PEERS; i++) {
+        // Send the process Chord ID
+        MPI_Send(&chord_ids[i - 1], 1, MPI_INT, i, TAGINIT, MPI_COMM_WORLD);
+        // Send the Chord ID of the successor
+        MPI_Send(&chord_ids[i % NB_PEERS], 1, MPI_INT, i, TAGINIT, MPI_COMM_WORLD);
+    }
 }
